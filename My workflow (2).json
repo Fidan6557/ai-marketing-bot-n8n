@@ -1,0 +1,1123 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        1056
+      ],
+      "id": "85afe065-bb64-48fb-927f-301e2b79f886",
+      "name": "Telegram Trigger",
+      "webhookId": "19f72f58-abfb-4ae5-9556-6d3dd4c2cb87",
+      "credentials": {
+        "telegramApi": {
+          "id": "KyAIkIeDVFiJzM0g",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{$json.message.photo[$json.message.photo.length - 1].file_id}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        736,
+        1040
+      ],
+      "id": "482d7707-96aa-431c-845f-c9dcf2ced411",
+      "name": "Get a file",
+      "webhookId": "39983484-216d-4c89-8c47-4fbe10830c0c",
+      "credentials": {
+        "telegramApi": {
+          "id": "KyAIkIeDVFiJzM0g",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.imgbb.com/1/upload",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "196cf4db681ffb582787ba5ccbeff0b3"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        960,
+        1040
+      ],
+      "id": "9d926de0-cd40-4944-b0e3-3d494d4adc7e",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7e611153-8c1d-4ac7-91e3-3ef31a70ca9f",
+              "name": "product_name",
+              "value": "={{ $('Code in JavaScript').item.json.product_name }}",
+              "type": "string"
+            },
+            {
+              "id": "17f1cb9e-1ac0-41a8-88e0-d6b2fe40d389",
+              "name": "description",
+              "value": "={{ $('Code in JavaScript').item.json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "9783e9cb-4f7d-4b5e-a0db-9cce732aaa0b",
+              "name": "category",
+              "value": "={{ $('Code in JavaScript').item.json.category }}",
+              "type": "string"
+            },
+            {
+              "id": "b30245be-4369-48d3-9f84-0c0cb8c8e9c5",
+              "name": "generated_image",
+              "value": "={{ $('Generate media using AI model').item.json.images[0].url }}",
+              "type": "string"
+            },
+            {
+              "id": "e7b9fc82-747b-4a39-ab77-ac1024028d87",
+              "name": "original_image",
+              "value": "={{ $('HTTP Request1').item.json.data.url }}",
+              "type": "string"
+            },
+            {
+              "id": "4267bd2b-6ad1-4eda-a953-ba22a3a49dc5",
+              "name": "status",
+              "value": "pending",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2608,
+        1040
+      ],
+      "id": "b2fd72d7-9c6c-479e-937c-506ca56e327c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "Bu məhsul şəklini analiz et və yalnız JSON qaytar.\n\n{\n  \"product_name\": \"\",\n  \"short_title\": \"\",\n  \"description\": \"\",\n  \"category\": \"\",\n  \"ad_caption\": \"\",\n  \"image_prompt\": \"\",\n  \"video_prompt\": \"\"\n}\n\nQaydalar:\n- yalnız xalis JSON qaytar\n- qısa yaz\n- description maksimum 2 cümlə olsun\n- ad_caption maksimum 1 cümlə olsun\n- image_prompt maksimum 1 cümlə olsun\n- video_prompt maksimum 1 cümlə olsun\n- features, target_audience, color_style, price_suggestion qaytarma",
+        "imageUrls": "={{ $('HTTP Request1').item.json.data.url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1216,
+        1040
+      ],
+      "id": "e942c6e1-b07f-40b9-874c-a9a07520ad36",
+      "name": "Analyze image1",
+      "credentials": {
+        "openAiApi": {
+          "id": "82ibUJ0vC6KCwAWn",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function findString(value) {\n  if (typeof value === 'string') {\n    if (value.includes('product_name')) return value;\n    return null;\n  }\n\n  if (Array.isArray(value)) {\n    for (const v of value) {\n      const found = findString(v);\n      if (found) return found;\n    }\n    return null;\n  }\n\n  if (value && typeof value === 'object') {\n    for (const key of Object.keys(value)) {\n      const found = findString(value[key]);\n      if (found) return found;\n    }\n  }\n\n  return null;\n}\n\nconst item = $input.first().json;\nlet raw = findString(item);\n\nif (!raw) {\n  throw new Error('Heç bir JSON-a bənzər text tapılmadı');\n}\n\nraw = String(raw).trim();\n\n// 1) əgər code block varsa sil\nraw = raw\n  .replace(/^```json\\s*/i, '')\n  .replace(/^```\\s*/i, '')\n  .replace(/\\s*```$/i, '');\n\n// 2) əgər string içində literal \\n varsa, normal newline et\nraw = raw.replace(/\\\\n/g, '\\n');\n\n// 3) ilk { tap\nconst start = raw.indexOf('{');\nif (start === -1) {\n  throw new Error('Başlanğıc { tapılmadı. Raw: ' + raw);\n}\n\nraw = raw.slice(start);\n\n// 4) əgər son } yoxdursa, əlavə et\nif (!raw.trim().endsWith('}')) {\n  raw = raw.trim() + '}';\n}\n\nlet data;\n\n// 5) birbaşa parse cəhdi\ntry {\n  data = JSON.parse(raw);\n} catch (e1) {\n  try {\n    // 6) bəzən bu JSON string olur, iki dəfə parse lazımdır\n    const tmp = JSON.parse(raw);\n    data = typeof tmp === 'string' ? JSON.parse(tmp) : tmp;\n  } catch (e2) {\n    throw new Error('Parse alınmadı. Raw: ' + raw);\n  }\n}\n\nreturn [\n  {\n    json: {\n      product_name: data.product_name ?? '',\n      short_title: data.short_title ?? '',\n      description: data.description ?? '',\n      category: data.category ?? '',\n      ad_caption: data.ad_caption ?? '',\n      image_prompt: data.image_prompt ?? '',\n      video_prompt: data.video_prompt ?? '',\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        1040
+      ],
+      "id": "af25392e-5527-4699-9d1a-bb5b65db0028",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "fal-ai/flux-2/edit",
+          "mode": "list",
+          "cachedResultName": "Flux 2 [image-to-image]"
+        },
+        "modelParameters": {
+          "parameters": [
+            {
+              "parameter": "prompt",
+              "value": "={{ $json.image_prompt }},\n\nUse the provided product image as the base.\n\nProduct name: {{ $json.product_name }}\nDescription: {{ $json.description }}\n\nIMPORTANT:\n- keep the product EXACTLY the same\n- do not change shape, label, logo, or proportions\n- only improve environment and presentation\n\nTransform into a modern e-commerce product advertisement.\n\nScene:\n- natural lifestyle environment suitable for the product\n- realistic usage context (hand, table, daily life setting)\n\nLighting & Quality:\n- soft warm lighting\n- realistic shadows\n- depth of field\n- high quality, 4k\n- professional product photography\n\nDesign:\n- clean modern marketplace style (Amazon / Shopify)\n- product is the main focus\n- premium advertising look\n\nOptional UI elements:\n- clean minimal badges\n- no distorted text\n\nTEXT RULES:\n- if text is generated, it must be in clear English\n- no random symbols\n- no broken letters\n\nGoal:\nGenerate a high-quality commercial product image using the original product."
+            },
+            {
+              "parameter": "image_urls",
+              "value": "={{ [ $('HTTP Request1').item.json.data.url ] }}"
+            }
+          ]
+        },
+        "options": {
+          "waitForCompletion": true,
+          "pollInterval": 5,
+          "maxWaitTime": 600
+        }
+      },
+      "type": "@fal-ai/n8n-nodes-fal.falAi",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        1040
+      ],
+      "id": "a9f4b809-d61a-4777-b7e8-a8040bbd35fb",
+      "name": "Generate media using AI model",
+      "credentials": {
+        "falAiApi": {
+          "id": "wNnBKe1bnnIa7GWV",
+          "name": "fal.ai account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "file": "={{ $('Generate media using AI model').item.json.images[0].url }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2016,
+        1040
+      ],
+      "id": "e572beed-5102-4892-864b-40c560961044",
+      "name": "Send a photo message1",
+      "webhookId": "3012dea9-72fc-4f58-9cda-be950516abae",
+      "credentials": {
+        "telegramApi": {
+          "id": "KyAIkIeDVFiJzM0g",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "fal-ai/bytedance/seedance/v1.5/pro/image-to-video",
+          "mode": "list",
+          "cachedResultName": "Bytedance [image-to-video]"
+        },
+        "modelParameters": {
+          "parameters": [
+            {
+              "parameter": "prompt",
+              "value": "Create a short premium social media ad video for this product.\n\nShow the product in a clean, modern lifestyle setting.\nKeep the product unchanged.\nUse cinematic lighting, smooth motion, close-up shots, and a final hero shot.\n\nStyle: premium, realistic, Instagram/TikTok ad\nDuration: short"
+            },
+            {
+              "parameter": "image_url",
+              "value": "={{ $('Generate media using AI model').item.json.images[0].url }}"
+            }
+          ]
+        },
+        "options": {
+          "waitForCompletion": true,
+          "pollInterval": 5,
+          "maxWaitTime": 600
+        }
+      },
+      "type": "@fal-ai/n8n-nodes-fal.falAi",
+      "typeVersion": 1,
+      "position": [
+        272,
+        1344
+      ],
+      "id": "f87e96bd-6681-4996-9a31-3701350c4ed3",
+      "name": "Generate media using AI model1",
+      "credentials": {
+        "falAiApi": {
+          "id": "wNnBKe1bnnIa7GWV",
+          "name": "fal.ai account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Generate media using AI model1').item.json.video.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2368,
+        1344
+      ],
+      "id": "54099aff-31af-4097-b5e9-c8dadfba72c6",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "🎬 Video advertisement generated successfully (demo mode)  Next step: Shopify + Social Media automation",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2656,
+        1344
+      ],
+      "id": "869dbf25-210a-425b-9a3e-59697c8875e9",
+      "name": "Send a text message2",
+      "webhookId": "f24c2422-3b31-4191-bccb-32b28d32a982",
+      "credentials": {
+        "telegramApi": {
+          "id": "KyAIkIeDVFiJzM0g",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f9ea3f8b-dbee-490e-bd1b-682f0e06e666",
+              "name": "product_name",
+              "value": "={{ $('Code in JavaScript').item.json.product_name }}",
+              "type": "string"
+            },
+            {
+              "id": "99416111-a5f5-4c40-848c-194b0766b438",
+              "name": "description",
+              "value": "={{ $('Code in JavaScript').item.json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "6634816a-503c-443f-b2d1-cef9cdb5d719",
+              "name": "category",
+              "value": "={{ $('Code in JavaScript').item.json.category }}",
+              "type": "string"
+            },
+            {
+              "id": "fe16f62b-6338-4dea-af1c-9a74e22889af",
+              "name": "original_image",
+              "value": "{{ $('HTTP Request1').item.json.data.url }",
+              "type": "string"
+            },
+            {
+              "id": "7bfdc8c7-a51e-464d-a3a0-1ec2734982db",
+              "name": "generated_image",
+              "value": "={{ $('Generate media using AI model').item.json.images[0].url }}",
+              "type": "string"
+            },
+            {
+              "id": "ef29dcc2-14b3-4919-82c5-44696dfb0966",
+              "name": "status",
+              "value": "\"completed\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        1760
+      ],
+      "id": "67f5ff0a-0815-47ea-9f27-88956b303a11",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Ia2nC4s21phAISPsOxooE1vFWT7F122FZV9XWAHOJSQ",
+          "mode": "list",
+          "cachedResultName": "hack",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ia2nC4s21phAISPsOxooE1vFWT7F122FZV9XWAHOJSQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "1 vərəq",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ia2nC4s21phAISPsOxooE1vFWT7F122FZV9XWAHOJSQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "product_name": "={{ $json.product_name }}",
+            "description": "={{ $json.description }}",
+            "category": "={{ $json.category }}",
+            "original_image": "={{ $json.original_image }}",
+            "generated_image": "={{ $json.generated_image }}",
+            "status": "completed",
+            "created_at": "={{ new Date().toISOString() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "product_name",
+              "displayName": "product_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "original_image",
+              "displayName": "original_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "generated_image",
+              "displayName": "generated_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        1760
+      ],
+      "id": "0fe4a788-3398-4d1d-8f73-b157456a2127",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lrpa0WsaRKCb1qpe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "conversation",
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert e-commerce marketer.\n\nUsing the product information below, create a ready-to-sell product listing in ENGLISH.\n\nProduct name: {{ $('Code in JavaScript').item.json.product_name }}\nDescription: {{ $('Code in JavaScript').item.json.description }}\nCategory: {{ $('Code in JavaScript').item.json.category }}\n\nReturn in this exact format:\n\nTITLE:\n(one short catchy title)\n\nDESCRIPTION:\n(3 short persuasive sentences)\n\nFEATURES:\n- feature 1\n- feature 2\n- feature 3\n- feature 4\n\nPRICE RECOMMENDATION:\n$XX.XX\n\nWHY THIS PRICE:\n(one short sentence)\n\nSHORT AD TEXT:\n(one catchy sentence for promotion)\n\nImportant:\n- Write only in English\n- Make it modern and persuasive\n- Keep it realistic"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        2080,
+        1344
+      ],
+      "id": "5f4c07d5-6b10-4582-b316-6887e1bb8417",
+      "name": "Create a conversation",
+      "credentials": {
+        "openAiApi": {
+          "id": "82ibUJ0vC6KCwAWn",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  product_name: $json[\"analysis\"]?.name || \"Product\",\n  description: $json[\"analysis\"]?.description || \"\",\n  cost: 10,\n  competitor_prices: [18, 20, 22],\n  platform: [\"instagram\", \"tiktok\"]\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        1760
+      ],
+      "id": "0f0de69b-3b79-441e-98a5-972de6594788",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are an expert e-commerce strategist.\n\nProduct: {{$json.product_name}}\nDescription: {{$json.description}}\nCost: {{$json.cost}}\nCompetitor prices: {{$json.competitor_prices}}\n\nTasks:\n- Suggest best selling price\n- Suggest discount price\n- Give short competitor analysis\n\nReturn clean JSON:\n{\n \"price\": \"\",\n \"discount_price\": \"\",\n \"analysis\": \"\"\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1232,
+        1760
+      ],
+      "id": "0fa76b0c-08c9-4c5d-bd0b-66631aaa1ec1",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "82ibUJ0vC6KCwAWn",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Create viral content for this product.\n\nProduct: {{$node[\"Code in JavaScript\"].json[\"product_name\"]}}\nDescription: {{$node[\"Code in JavaScript\"].json[\"description\"]}}\n\nCreate:\n1. Instagram caption\n2. TikTok caption\n\nInclude:\n- Hook\n- CTA\n- Hashtags\n\nReturn only valid JSON:\n{\n  \"instagram\": \"\",\n  \"tiktok\": \"\"\n}\n\n\nDo not add explanations\nDo not wrap in markdown"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1680,
+        1760
+      ],
+      "id": "77b79fcc-dbe2-40f2-8cee-ef15b0846979",
+      "name": "Message a model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "82ibUJ0vC6KCwAWn",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.output[0].content[0].text;\nconst cleaned = raw.replace(/```json/g, '').replace(/```/g, '').trim();\nconst parsed = JSON.parse(cleaned);\n\nreturn [parsed];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        1760
+      ],
+      "id": "fba0bb45-9050-41b1-af55-2bf41af9857d",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawPriceText = $node[\"Message a model\"].json.output[0].content[0].text;\nconst match = rawPriceText.match(/\\{[\\s\\S]*\\}/);\n\nlet priceData = {\n  price: \"N/A\",\n  discount_price: \"N/A\",\n  analysis: \"Analysis tapılmadı\"\n};\n\nif (match) {\n  priceData = JSON.parse(match[0]);\n}\n\nconst captionData = $node[\"Code in JavaScript2\"].json;\nconst chatId = $node[\"Telegram Trigger\"].json.message.chat.id;\n\nreturn [\n  {\n    json: {\n      chat_id: chatId,\n      type: \"instagram\",\n      text: captionData.instagram || \"Instagram caption tapılmadı\"\n    }\n  },\n  {\n    json: {\n      chat_id: chatId,\n      type: \"tiktok\",\n      text: captionData.tiktok || \"TikTok caption tapılmadı\"\n    }\n  },\n  {\n    json: {\n      chat_id: chatId,\n      type: \"analysis\",\n      text: priceData.analysis || \"Analysis tapılmadı\"\n    }\n  },\n  {\n    json: {\n      chat_id: chatId,\n      type: \"pricing\",\n      text: `Best price: ${priceData.price || \"N/A\"}\\nDiscount price: ${priceData.discount_price || \"N/A\"}`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        1760
+      ],
+      "id": "00ab1de3-2afd-4500-aae7-9d608c1d41d0",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json.chat_id}}",
+        "text": "={{$json.text}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2736,
+        1760
+      ],
+      "id": "01cdf5b4-9013-462e-942e-144918d7b935",
+      "name": "Send a text message3",
+      "webhookId": "97d8a825-71c5-4422-a312-e5ef4a3662bd",
+      "credentials": {
+        "telegramApi": {
+          "id": "KyAIkIeDVFiJzM0g",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f248b095-365d-4d22-ba85-11a7a053cc57",
+              "leftValue": "={{$json.message.photo}}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e948f776-13bb-4177-b77b-af0096ab4b15",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        496,
+        1056
+      ],
+      "id": "c11ef51f-3cfb-436a-8152-e7aeb7a667f4",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{$node[\"Telegram Trigger\"].json.message.chat.id}}",
+        "text": "🎬 Video generation başladı.  Məhsul reklam videosu hazırlanır. Bu proses bir qədər vaxt ala bilər. Zəhmət olmasa gözləyin — hazır olan kimi link sizə göndəriləcək.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2320,
+        1040
+      ],
+      "id": "c26a14d7-bca8-43d0-9781-76a896a8ad6a",
+      "name": "Send a text message5",
+      "webhookId": "8e71f193-a58d-494f-bb49-fecc39a491f5",
+      "credentials": {
+        "telegramApi": {
+          "id": "KyAIkIeDVFiJzM0g",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{$node[\"Generate media using AI model1\"].json[\"video\"][\"url\"]}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1488,
+        1344
+      ],
+      "id": "bfd627b3-d1b6-4f9f-8aa3-f4b4c4a747d4",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{$node[\"Telegram Trigger\"].json.message.chat.id}}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1776,
+        1344
+      ],
+      "id": "9d6a6bc8-5e24-47ca-bcac-e9ab974bbd67",
+      "name": "Send a document",
+      "webhookId": "41fbdef4-f13b-4c3a-895d-c58d42a4bc85",
+      "credentials": {
+        "telegramApi": {
+          "id": "KyAIkIeDVFiJzM0g",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Create a viral social media ad copy for this product.\n\nProduct: {{$node[\"Code in JavaScript\"].json[\"product_name\"]}}\nDescription: {{$node[\"Code in JavaScript\"].json[\"description\"]}}\n\nReturn ONLY valid JSON:\n{\n  \"hook\": \"\",\n  \"cta\": \"\",\n  \"hashtags\": \"\"\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        496,
+        1344
+      ],
+      "id": "c19bbf11-3a0c-4e61-9430-588df998863b",
+      "name": "Message a model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "82ibUJ0vC6KCwAWn",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.output[0].content[0].text;\nconst parsed = JSON.parse(raw);\n\nreturn [\n  {\n    json: {\n      hook: parsed.hook,\n      cta: parsed.cta,\n      hashtags: parsed.hashtags\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        1344
+      ],
+      "id": "89c3aeaa-cdc8-42ed-aadd-904dbce1e66c",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatId = $node[\"Telegram Trigger\"].json.message.chat.id;\nconst videoUrl = $node[\"Generate media using AI model1\"].json.video.url;\n\nreturn [\n  {\n    json: {\n      chat_id: chatId,\n      text: `🔥 ${$json.hook}\n\n👉 ${$json.cta}\n\n🎬 Video:\n${videoUrl}\n\n${$json.hashtags}`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        1344
+      ],
+      "id": "008db076-1bb9-46ea-b80d-c0e1f005104f",
+      "name": "Code in JavaScript5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Analyze image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Generate media using AI model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Generate media using AI model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate media using AI model": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a photo message1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate media using AI model1": {
+      "main": [
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a conversation": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message5": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Send a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a document": {
+      "main": [
+        [
+          {
+            "node": "Create a conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6b68ac4b-ce3d-49c9-9083-cc25ee760d3f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "03b6967afdd5c9b4fa42f19eb741d2a0517fbe04828582dcfacbdc4158b68ded"
+  },
+  "id": "pLOUvRMBhmfcmcbz",
+  "tags": []
+}
