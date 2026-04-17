@@ -1,4 +1,4 @@
-e · MDCopyMy Workflow — Telegram AI Media Bot
+My Workflow — Telegram AI Media Bot
 
 Automated Telegram bot that receives messages, processes images with AI, generates media, and responds with photos, documents, and text — all orchestrated through a multi-branch n8n workflow.
 
